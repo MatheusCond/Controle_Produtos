@@ -52,6 +52,9 @@ class ProductsListPage extends StatelessWidget {
                 (context, index) => ProductListTile(
                   product: products[index],
                   usageStream: usageRepo.getUsageHistory(products[index].id),
+                  dailyAverageStream: usageRepo.getDailyAverageStream(
+                    products[index].id,
+                  ),
                 ),
           );
         },

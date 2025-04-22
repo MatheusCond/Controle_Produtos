@@ -7,7 +7,11 @@ class ProductUsageRepository {
 
   ProductUsageRepository(this._firestore);
 
-  Future<void> addUsage(String productId, double quantityUsed, ProductUnit unit) async {
+  Future<void> addUsage(
+    String productId,
+    double quantityUsed,
+    ProductUnit unit,
+  ) async {
     final productRef = _firestore.collection('products').doc(productId);
 
     // Use uma transação para garantir atomicidade
@@ -43,5 +47,50 @@ class ProductUsageRepository {
                   .map((doc) => ProductUsage.fromJson(doc.data(), doc.id))
                   .toList(),
         );
+  }
+
+  Future<Map<String, dynamic>> calculateStockForecast(String productId) async {
+    final usageSnapshot =
+        await _firestore
+            .collection('products')
+            .doc(productId)
+            .collection('usages')
+            .orderBy('timestamp', descending: true)
+            .get();
+
+    final usages =
+        usageSnapshot.docs
+            .map((doc) => ProductUsage.fromJson(doc.data(), doc.id))
+            .toList();
+
+    if (usages.isEmpty) return {'average': 0.0, 'daysRemaining': 0};
+
+    // Calcula consumo total e período
+    final totalConsumed = usages.fold(
+      0.0,
+      (sum, usage) => sum + usage.quantityUsed,
+    );
+    final firstDate = usages.last.timestamp;
+    final lastDate = usages.first.timestamp;
+    final days = lastDate.difference(firstDate).inDays + 1;
+
+    final dailyAverage = totalConsumed / days;
+
+    return {
+      'average': dailyAverage,
+      'daysRemaining': days > 0 ? dailyAverage : 0,
+    };
+  }
+
+  Stream<double> getDailyAverageStream(String productId) {
+    return _firestore
+        .collection('products')
+        .doc(productId)
+        .collection('usages')
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final result = await calculateStockForecast(productId);
+          return result['average'] as double;
+        });
   }
 }
