@@ -13,7 +13,6 @@ class ProductsListPage extends StatelessWidget {
     final usageRepo = context.read<ProductUsageRepository>();
 
     return Scaffold(
-      // Adicione o Scaffold como ancestral
       appBar: AppBar(
         title: const Text('Lista de Produtos'),
         actions: [
@@ -38,11 +37,14 @@ class ProductsListPage extends StatelessWidget {
               snapshot.data!.docs.map((doc) {
                 return ProductModel(
                   id: doc.id,
-                  name: doc['name'],
-                  description: doc['description'],
-                  quantity: doc['quantity'].toDouble(),
-                  unit: ProductModel.unitFromString(doc['unit']),
-                  expirationDate: DateTime.parse(doc['expirationDate']),
+                  name: doc['name'] as String,
+                  description: doc['description'] as String,
+                  quantity: (doc['quantity'] as num).toDouble(),
+                  unit: ProductModel.unitFromString(doc['unit'] as String),
+                  expirationDate: DateTime.parse(
+                    doc['expirationDate'] as String,
+                  ),
+                  minStock: (doc['minStock'] as num).toDouble(),
                 );
               }).toList();
 

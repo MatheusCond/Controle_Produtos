@@ -18,7 +18,7 @@ class RegisterProductPage extends StatelessWidget {
             AddProductUseCase(
               FirebaseProductRepository(FirebaseFirestore.instance),
             ),
-          ),
+          ), // Fechamento correto do parâmetro create
       child: Scaffold(
         appBar: AppBar(title: const Text('Cadastrar Produto')),
         body: Padding(
@@ -53,9 +53,18 @@ class _ProductForm extends StatelessWidget {
           ),
           TextFormField(
             controller: provider.quantityController,
-            decoration: const InputDecoration(labelText: 'Quantidade'),
+            decoration: const InputDecoration(labelText: 'Quantidade Inicial'),
             keyboardType: TextInputType.number,
             validator: provider.validateQuantity,
+          ),
+          TextFormField(
+            controller: provider.minStockController,
+            decoration: const InputDecoration(
+              labelText: 'Estoque Mínimo',
+              hintText: 'Defina o nível mínimo de alerta',
+            ),
+            keyboardType: TextInputType.number,
+            validator: provider.validateMinStock,
           ),
           DropdownButtonFormField<ProductUnit>(
             value: provider.selectedUnit,

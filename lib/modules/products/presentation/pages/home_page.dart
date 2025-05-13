@@ -20,6 +20,11 @@ class HomePage extends StatelessWidget {
               onPressed: () => Navigator.pushNamed(context, '/list'),
               child: const Text('Ver Lista de Produtos'),
             ),
+            const SizedBox(height: 20), 
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, '/dashboard'),
+              child: const Text('Acessar Dashboard'),
+            ),
           ],
         ),
       ),

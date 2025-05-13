@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/modules/products/domain/models/product_model.dart';
 import 'package:myapp/modules/products/domain/usecases/add_product_usecase.dart';
+import 'package:myapp/services/notifications/notification_service.dart';
 
 class AddProductProvider extends ChangeNotifier {
   final AddProductUseCase addProductUseCase;
-  
+
   AddProductProvider(this.addProductUseCase);
 
   final formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController quantityController = TextEditingController();
+  final TextEditingController minStockController = TextEditingController();
   ProductUnit selectedUnit = ProductUnit.unid;
   DateTime? selectedDate;
 
@@ -24,6 +26,13 @@ class AddProductProvider extends ChangeNotifier {
   String? validateQuantity(String? value) {
     if (value == null || value.isEmpty || double.tryParse(value) == null) {
       return 'Quantidade inválida';
+    }
+    return null;
+  }
+
+  String? validateMinStock(String? value) {
+    if (value == null || value.isEmpty || double.tryParse(value) == null) {
+      return 'Valor inválido';
     }
     return null;
   }
@@ -57,9 +66,11 @@ class AddProductProvider extends ChangeNotifier {
         quantity: double.parse(quantityController.text),
         unit: selectedUnit,
         expirationDate: selectedDate!,
+        minStock: double.parse(minStockController.text),
       );
-      
+
       await addProductUseCase.execute(product);
+      _scheduleNotifications(product);
       clearForm();
     }
   }
@@ -71,5 +82,16 @@ class AddProductProvider extends ChangeNotifier {
     selectedUnit = ProductUnit.unid;
     selectedDate = null;
     notifyListeners();
+  }
+
+  void _scheduleNotifications(ProductModel product) {
+    final notificationService = NotificationService();
+
+    notificationService.scheduleExpirationNotification(
+      id: product.id.hashCode,
+      title: 'Validade Próxima',
+      body: '${product.name} vence em 5 dias!',
+      expirationDate: product.expirationDate,
+    );
   }
 }
